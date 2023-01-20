@@ -65,7 +65,7 @@ public class UserController {
             user.setName(user.getLogin());
         }
 
-        if (user.getBirthday() != null || user.getBirthday().isAfter(LocalDate.now())) {
+        if (user.getBirthday() != null && user.getBirthday().isAfter(LocalDate.now())) {
             throw new ValidationException("User Birthdate is not valid: " + user.getBirthday());
         }
     }
