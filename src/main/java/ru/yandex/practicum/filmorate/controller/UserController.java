@@ -48,17 +48,16 @@ public class UserController {
         return user;
     }
 
-
-    private void validateUser(User user) {
+    public void validateUser(User user) {
         if (user == null) {
             throw new ValidationException("User can't be empty");
         }
 
-        if (!user.getEmail().contains("@")) {
+        if (user.getEmail() == null || !user.getEmail().contains("@")) {
             throw new ValidationException("User Email is not valid: " + user.getEmail());
         }
 
-        if (user.getLogin().isBlank()) {
+        if (user.getLogin() == null || user.getLogin().isBlank() || user.getLogin().contains(" ")) {
             throw new ValidationException("User Login is not valid: " + user.getLogin());
         }
 
@@ -66,9 +65,8 @@ public class UserController {
             user.setName(user.getLogin());
         }
 
-        if (user.getBirthday().isAfter(LocalDate.now())) {
+        if (user.getBirthday() != null || user.getBirthday().isAfter(LocalDate.now())) {
             throw new ValidationException("User Birthdate is not valid: " + user.getBirthday());
         }
-
     }
 }

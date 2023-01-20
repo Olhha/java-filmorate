@@ -47,7 +47,7 @@ public class FilmController {
     }
 
 
-    private void validateFilm(Film film) {
+    public void validateFilm(Film film) {
         final LocalDate FILM_FIRST_DAY = LocalDate.of(1895, 12, 28);
 
         if (film == null) {
