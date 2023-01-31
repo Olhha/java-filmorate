@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
@@ -15,9 +16,10 @@ import java.util.Map;
 @RestController
 @RequestMapping("/films")
 public class FilmController {
+    public static final int MAX_DESCRIPTION_LENGTH = 200;
     private final Map<Integer, Film> films = new HashMap<>();
     private int filmID = 0;
-    private final static Logger log = LoggerFactory.getLogger(FilmController.class);
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     @GetMapping
     public List<Film> findAllFilms() {
@@ -39,7 +41,7 @@ public class FilmController {
     public Film updateFilm(@RequestBody Film film) {
         validateFilm(film);
         if (!films.containsKey(film.getId())) {
-            throw new ValidationException("Фильм с таким ID не найден.");
+            throw new NotFoundException("Фильм с таким ID не найден.");
         }
         films.put(film.getId(), film);
         log.info("Фильм обновлён {}", film);
@@ -58,7 +60,7 @@ public class FilmController {
             throw new ValidationException("Film Name can't be empty: " + film.getName());
         }
 
-        if (film.getDescription().length() > 200) {
+        if (film.getDescription().length() > MAX_DESCRIPTION_LENGTH) {
             throw new ValidationException("Film description can't be more than 200 chars: "
                     + film.getDescription());
         }
@@ -68,7 +70,7 @@ public class FilmController {
                     "than the very first movie in the history: " + film.getReleaseDate());
         }
 
-        if (film.getDuration() < 0) {
+        if (film.getDuration() <= 0) {
             throw new ValidationException("Film duration should be positive: " + film.getDuration());
         }
     }
