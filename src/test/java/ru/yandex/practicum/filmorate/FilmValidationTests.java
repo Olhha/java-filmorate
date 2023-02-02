@@ -12,7 +12,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 
 public class FilmValidationTests {
-    private static final int FILM_DESCRIPTION_MAX_LENGTH = 200;
     FilmController fc = new FilmController();
 
     @Test
@@ -56,7 +55,7 @@ public class FilmValidationTests {
     @Test
     void longDescription() {
         Film film = new Film("Film lond description", LocalDate.of(1999, 6, 25), 100);
-        film.setDescription("u".repeat(FILM_DESCRIPTION_MAX_LENGTH + 1));
+        film.setDescription("u".repeat(FilmController.MAX_DESCRIPTION_LENGTH + 1));
 
         ValidationException exception = assertThrows(
                 ValidationException.class,
