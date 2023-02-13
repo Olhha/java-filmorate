@@ -32,11 +32,10 @@ public class UserService {
     }
 
     public User updateUser(User user) {
-        validateUser(user);
+        checkIfUserExists(user.getId());
 
-        if (!userStorage.updateUser(user)) {
-            throw new NotFoundException("Пользователь с таким ID не найден.");
-        }
+        validateUser(user);
+        userStorage.updateUser(user);
 
         return user;
     }

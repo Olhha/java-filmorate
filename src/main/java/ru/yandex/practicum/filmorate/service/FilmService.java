@@ -35,10 +35,10 @@ public class FilmService {
     }
 
     public Film updateFilm(Film film) {
+        getFilmByID(film.getId());
         validateFilm(film);
-        if (!filmStorage.updateFilm(film)) {
-            throw new NotFoundException("Фильм с таким ID не найден.");
-        }
+        filmStorage.updateFilm(film);
+
         return film;
     }
 
