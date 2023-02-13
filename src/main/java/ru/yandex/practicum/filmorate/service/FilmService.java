@@ -26,7 +26,6 @@ public class FilmService {
     }
 
     public List<Film> findAllFilms() {
-
         return filmStorage.getAllFilms();
     }
 
@@ -37,7 +36,10 @@ public class FilmService {
 
     public Film updateFilm(Film film) {
         validateFilm(film);
-        return filmStorage.updateFilm(film);
+        if (!filmStorage.updateFilm(film)) {
+            throw new NotFoundException("Фильм с таким ID не найден.");
+        }
+        return film;
     }
 
     public void validateFilm(Film film) {
@@ -56,8 +58,8 @@ public class FilmService {
         Film film = getFilmByID(filmID);
 
         if (!film.addLike(userID)) {
-            throw new AlreadyExistException(String.format("Пользователь id=%d уже ставил лайк фильму id=%d.",
-                    userID, filmID));
+            throw new AlreadyExistException(String.format("Пользователь id=%d уже ставил " +
+                    "лайк фильму id=%d.", userID, filmID));
         }
 
         return film;
@@ -76,8 +78,8 @@ public class FilmService {
         Film film = getFilmByID(filmID);
 
         if (!film.removeLike(userID)) {
-            throw new NotFoundException(String.format("У фильма id=%d нет лайка от пользователя id=%d.",
-                    filmID, userID));
+            throw new NotFoundException(String.format("У фильма id=%d нет лайка " +
+                    "от пользователя id=%d.", filmID, userID));
         }
 
         return film;
@@ -88,7 +90,7 @@ public class FilmService {
                 Comparator.comparingInt(f -> f.getLikesFromUsers().size());
 
         return filmStorage.getAllFilms().stream().sorted(
-                 filmsComparator.reversed())
+                        filmsComparator.reversed())
                 .limit(count)
                 .collect(Collectors.toList());
     }

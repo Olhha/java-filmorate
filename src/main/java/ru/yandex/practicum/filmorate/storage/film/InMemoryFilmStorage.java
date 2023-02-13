@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.storage.film;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.ArrayList;
@@ -21,7 +20,6 @@ public class InMemoryFilmStorage implements FilmStorage {
     @Override
     public List<Film> getAllFilms() {
         log.info("Всего фильмов: {}", films.size());
-
         return new ArrayList<>(films.values());
     }
 
@@ -35,13 +33,12 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Film updateFilm(Film film) {
-        if (!films.containsKey(film.getId())) {
-            throw new NotFoundException("Фильм с таким ID не найден.");
+    public boolean updateFilm(Film film) {
+        if (films.put(film.getId(), film) == null) {
+            return false;
         }
-        films.put(film.getId(), film);
         log.info("Фильм обновлён {}", film);
-        return film;
+        return true;
     }
 
     @Override

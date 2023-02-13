@@ -33,10 +33,15 @@ public class UserService {
 
     public User updateUser(User user) {
         validateUser(user);
-        return userStorage.updateUser(user);
+
+        if (!userStorage.updateUser(user)) {
+            throw new NotFoundException("Пользователь с таким ID не найден.");
+        }
+
+        return user;
     }
 
-    public void validateUser(User user) {
+    private void validateUser(User user) {
         if (user.getName() == null || user.getName().isEmpty()) {
             user.setName(user.getLogin());
         }
@@ -65,8 +70,8 @@ public class UserService {
         User friend = getUserByID(friendId);
 
         if (!user.addFriend(friendId) || !friend.addFriend(userID)) {
-            throw new AlreadyExistException(String.format("Пользователь %d уже дружит с %d."
-                    + userID, friendId));
+            throw new AlreadyExistException(String.format("Пользователь %d уже дружит с %d.",
+                    userID, friendId));
         }
 
         return user;

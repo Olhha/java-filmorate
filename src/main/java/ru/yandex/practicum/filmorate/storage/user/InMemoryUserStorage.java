@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestBody;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.*;
@@ -32,14 +31,12 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public User updateUser(@RequestBody User user) {
-        if (!users.containsKey(user.getId())) {
-            throw new NotFoundException("Пользователь с таким ID не найден.");
+    public boolean updateUser(@RequestBody User user) {
+        if (users.put(user.getId(), user) == null) {
+            return false;
         }
-
-        users.put(user.getId(), user);
         log.info("Пользователь обновлён {}", user);
-        return user;
+        return true;
     }
 
     @Override
