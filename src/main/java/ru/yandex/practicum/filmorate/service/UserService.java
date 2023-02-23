@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.AlreadyExistException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
@@ -12,13 +13,14 @@ import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 import java.util.List;
 
 @Service
+
 public class UserService {
     private final UserStorage userStorage;
     private final Logger log = LoggerFactory.getLogger(getClass());
 
 
     @Autowired
-    public UserService(UserStorage userStorage) {
+    public UserService(@Qualifier("userDbStorage") UserStorage userStorage) {
         this.userStorage = userStorage;
     }
 
@@ -47,10 +49,6 @@ public class UserService {
     }
 
     public User getUserByID(int userID) {
-        return checkIfUserExists(userID);
-    }
-
-    public User checkIfUserExists(int userID) {
         User user = userStorage.getUserByID(userID);
         if (user == null) {
             throw new NotFoundException("User with id = " + userID + " doesn't exist.");
@@ -59,34 +57,38 @@ public class UserService {
         return user;
     }
 
+    public void checkIfUserExists(int userID) {
+        getUserByID(userID);
+    }
+
     public List<User> getFriends(int userID) {
         checkIfUserExists(userID);
         return userStorage.getFriends(userID);
     }
 
-    public User addFriend(int userID, int friendId) {
-        User user = getUserByID(userID);
-        User friend = getUserByID(friendId);
+    public boolean addFriend(int userID, int friendID) {
+        checkIfUserExists(userID);
+        checkIfUserExists(friendID);
 
-        if (!user.addFriend(friendId) || !friend.addFriend(userID)) {
+        if (userStorage.checkIfFriends(userID, friendID)) {
             throw new AlreadyExistException(String.format("Пользователь %d уже дружит с %d.",
-                    userID, friendId));
+                    userID, friendID));
         }
 
-        return user;
+        return userStorage.addFriend(userID, friendID);
+
     }
 
-    public User deleteFriend(int userID, int friendId) {
+    public boolean deleteFriend(int userID, int friendID) {
+        checkIfUserExists(userID);
+        checkIfUserExists(friendID);
 
-        User user = getUserByID(userID);
-        User friend = getUserByID(friendId);
-
-        if (!user.deleteFriend(friendId) || !friend.deleteFriend(userID)) {
-            throw new NotFoundException(String.format("У пользователя id = %d нет в друзьях id = %d",
-                    userID, friendId));
+        if (!userStorage.checkIfFriends(userID, friendID)) {
+            throw new NotFoundException(String.format("У пользователя id = %d нет " +
+                    "в друзьях id = %d", userID, friendID));
         }
 
-        return user;
+        return userStorage.deleteFriend(userID, friendID);
     }
 
     public List<User> getCommonFriends(int userID, int otherUserID) {

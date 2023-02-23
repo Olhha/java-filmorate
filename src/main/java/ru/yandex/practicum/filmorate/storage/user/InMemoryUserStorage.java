@@ -9,7 +9,7 @@ import ru.yandex.practicum.filmorate.model.User;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Component
+@Component("inMemoryUserStorage")
 public class InMemoryUserStorage implements UserStorage {
     private int userID = 0;
     private final Map<Integer, User> users = new HashMap<>();
@@ -60,4 +60,18 @@ public class InMemoryUserStorage implements UserStorage {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public boolean checkIfFriends(int userID, int friendId) {
+        return false;
+    }
+
+    @Override
+    public boolean addFriend(int userID, int friendID) {
+        return false;
+    }
+
+    @Override
+    public boolean deleteFriend(int userID, int friendID) {
+        return true;
+    }
 }

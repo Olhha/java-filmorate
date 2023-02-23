@@ -5,12 +5,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
-@Component
+@Component("inMemoryFilmStorage")
 public class InMemoryFilmStorage implements FilmStorage {
     private int filmID = 0;
     private final Map<Integer, Film> films = new HashMap<>();
@@ -33,16 +31,38 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public boolean updateFilm(Film film) {
+    public Film updateFilm(Film film) {
         if (films.put(film.getId(), film) == null) {
-            return false;
+            return null;
         }
         log.info("Фильм обновлён {}", film);
-        return true;
+        return film;
     }
 
     @Override
     public Film getFilmByID(int filmID) {
         return films.get(filmID);
     }
+
+    @Override
+    public boolean addLike(int filmID, int userID) {
+        return false;
+    }
+
+    @Override
+    public boolean removeLike(int filmID, int userID) {
+        return false;
+    }
+
+    @Override
+    public List<Film> getPopularFilms(int count) {
+        Comparator<Film> filmsComparator =
+                Comparator.comparingInt(f -> f.getLikesFromUsers().size());
+
+        return getAllFilms().stream().sorted(
+                        filmsComparator.reversed())
+                .limit(count)
+                .collect(Collectors.toList());
+    }
+
 }
