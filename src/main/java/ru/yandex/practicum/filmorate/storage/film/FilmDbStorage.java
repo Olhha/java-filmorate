@@ -8,12 +8,13 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.GenreStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component("filmDbStorage")
@@ -88,8 +89,9 @@ public class FilmDbStorage implements FilmStorage {
                 "left join RATING_MPA m on f.MPA_ID = m.MPA_ID ";
 
         List<Film> films = jdbcTemplate.query(sqlQuery, this::mapRowToFilm);
+        Map<Integer, List<Genre>> genres = getAllGenres();
 
-        films.forEach(this::setGenresOnFilm);
+        films.forEach(f -> setGenresOnFilm(f, genres.get(f.getId())));
 
         return films;
     }
@@ -110,7 +112,13 @@ public class FilmDbStorage implements FilmStorage {
             return null;
         }
 
-        return setGenresOnFilm(film);
+        String sqlQueryGenere = "select fg.genre_id, g.NAME from FILM_GENRE fg, " +
+                "GENRE g where g.GENRE_ID = fg.GENRE_ID and fg.film_id = ?";
+
+        jdbcTemplate.query(sqlQueryGenere, genreStorage::mapRowToGenre, film.getId())
+                .forEach(film::addGenre);
+
+        return film;
     }
 
     @Override
@@ -120,11 +128,6 @@ public class FilmDbStorage implements FilmStorage {
             return jdbcTemplate.update(sqlQuery, filmID, userID) > 0;
         }
         return false;
-    }
-
-    private boolean checkIfLikeExists(int filmID, int userID) {
-        String sqlQuery = "select * from film_likes where film_id = ? and user_id = ?";
-        return jdbcTemplate.query(sqlQuery, ResultSet::next, filmID, userID);
     }
 
     @Override
@@ -154,19 +157,36 @@ public class FilmDbStorage implements FilmStorage {
 
         List<Film> films = jdbcTemplate.query(sqlQuery, this::mapRowToFilm, count);
 
-        films.forEach(this::setGenresOnFilm);
+        Map<Integer, List<Genre>> genres = getAllGenres();
+
+        films.forEach(f -> setGenresOnFilm(f, genres.get(f.getId())));
 
         return films;
 
     }
 
-    private Film setGenresOnFilm(Film film) {
-        String sqlQuery = "select fg.genre_id, g.NAME from FILM_GENRE fg, " +
-                "GENRE g where g.GENRE_ID = fg.GENRE_ID and fg.film_id = ?";
+    private boolean checkIfLikeExists(int filmID, int userID) {
+        String sqlQuery = "select * from film_likes where film_id = ? and user_id = ?";
+        return jdbcTemplate.query(sqlQuery, ResultSet::next, filmID, userID);
+    }
 
-        jdbcTemplate.query(sqlQuery, genreStorage::mapRowToGenre, film.getId())
-                .forEach(film::addGenre);
+    private Map<Integer, List<Genre>> getAllGenres() {
+        final Map<Integer, List<Genre>> genres = new HashMap<>();
 
+        jdbcTemplate.query("select fg.film_id, fg.genre_id, g.name from film_genre fg, genre g " +
+                "where fg.genre_id = g.genre_id", (ResultSet rs) -> {
+
+            int film_id = rs.getInt("film_id");
+            Genre genre = new Genre(rs.getInt("genre_id"), rs.getString("name"));
+            genres.computeIfAbsent(film_id, k -> new ArrayList<>()).add(genre);
+        });
+        return genres;
+    }
+
+    private Film setGenresOnFilm(Film film, List<Genre> genres) {
+        if (genres != null) {
+            genres.forEach(film::addGenre);
+        }
         return film;
     }
 

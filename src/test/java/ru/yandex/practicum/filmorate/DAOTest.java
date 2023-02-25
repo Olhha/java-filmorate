@@ -24,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 @AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-public class DAOtests {
+public class DAOTest {
     private final UserDbStorage userStorage;
     private final FilmDbStorage filmStorage;
     private final GenreStorage genreStorage;
