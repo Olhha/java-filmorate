@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.AlreadyExistException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
@@ -9,9 +10,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
 import java.time.LocalDate;
-import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class FilmService {
@@ -20,7 +19,7 @@ public class FilmService {
     private final UserService userService;
 
     @Autowired
-    public FilmService(FilmStorage filmStorage, UserService userService) {
+    public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage, UserService userService) {
         this.filmStorage = filmStorage;
         this.userService = userService;
     }
@@ -37,9 +36,8 @@ public class FilmService {
     public Film updateFilm(Film film) {
         getFilmByID(film.getId());
         validateFilm(film);
-        filmStorage.updateFilm(film);
 
-        return film;
+        return filmStorage.updateFilm(film);
     }
 
     public void validateFilm(Film film) {
@@ -57,7 +55,7 @@ public class FilmService {
 
         Film film = getFilmByID(filmID);
 
-        if (!film.addLike(userID)) {
+        if (!filmStorage.addLike(filmID, userID)) {
             throw new AlreadyExistException(String.format("Пользователь id=%d уже ставил " +
                     "лайк фильму id=%d.", userID, filmID));
         }
@@ -77,7 +75,7 @@ public class FilmService {
         userService.checkIfUserExists(userID);
         Film film = getFilmByID(filmID);
 
-        if (!film.removeLike(userID)) {
+        if (!filmStorage.removeLike(filmID, userID)) {
             throw new NotFoundException(String.format("У фильма id=%d нет лайка " +
                     "от пользователя id=%d.", filmID, userID));
         }
@@ -86,12 +84,6 @@ public class FilmService {
     }
 
     public List<Film> getPopularFilms(int count) {
-        Comparator<Film> filmsComparator =
-                Comparator.comparingInt(f -> f.getLikesFromUsers().size());
-
-        return filmStorage.getAllFilms().stream().sorted(
-                        filmsComparator.reversed())
-                .limit(count)
-                .collect(Collectors.toList());
+        return filmStorage.getPopularFilms(count);
     }
 }

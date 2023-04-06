@@ -8,6 +8,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
@@ -124,6 +125,7 @@ class FilmorateApplicationTests {
                 .description("Very interesting film")
                 .releaseDate(LocalDate.of(2004, 6, 5))
                 .duration(30)
+                .mpa(new Mpa(1, "G"))
                 .build();
 
         String userString = objectMapper.writeValueAsString(film);
@@ -135,7 +137,9 @@ class FilmorateApplicationTests {
                 .andExpect(jsonPath("$.name").value("New Film Caption"))
                 .andExpect(jsonPath("$.description").value("Very interesting film"))
                 .andExpect(jsonPath("$.duration").value("30"))
-                .andExpect(jsonPath("$.releaseDate").value("2004-06-05"));
+                .andExpect(jsonPath("$.releaseDate").value("2004-06-05"))
+
+        ;
     }
 
     @SneakyThrows

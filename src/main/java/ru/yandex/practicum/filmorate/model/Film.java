@@ -5,8 +5,7 @@ import lombok.Data;
 
 import javax.validation.constraints.*;
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import static ru.yandex.practicum.filmorate.service.FilmService.MAX_DESCRIPTION_LENGTH;
 
@@ -22,7 +21,8 @@ public class Film {
     private final LocalDate releaseDate;
     @Positive
     private final int duration;
-
+    private final Mpa mpa;
+    private final List<Genre> genres = new ArrayList<>();
     private final Set<Integer> likesFromUsers = new HashSet<>();
 
     public boolean addLike(int userID) {
@@ -31,5 +31,19 @@ public class Film {
 
     public boolean removeLike(int userID) {
         return likesFromUsers.remove(userID);
+    }
+
+    public void addGenre(Genre genre) {
+        genres.add(genre);
+    }
+
+    public Map<String, Object> toMap() {
+        Map<String, Object> values = new HashMap<>();
+        values.put("name", name);
+        values.put("description", description);
+        values.put("release_date", releaseDate);
+        values.put("duration", duration);
+        values.put("mpa_id", mpa.getId());
+        return values;
     }
 }
